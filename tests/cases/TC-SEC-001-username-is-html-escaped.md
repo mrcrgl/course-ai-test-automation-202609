@@ -1,7 +1,7 @@
 ---
 id: TC-SEC-001
 title: A script tag in the username is escaped, not executed
-version: 2
+version: 3
 status: approved
 owner: marc.riegel@nimbusforge.de
 created: 2026-09-14
@@ -72,7 +72,7 @@ executes.
 | Frequency of occurrence (BSI-P-06) | `very-frequently` — reflected-XSS probing is standard on any form that echoes input |
 | Extent of damage (BSI-P-06) | `considerable` — executing script in the page context can harvest credentials as they are typed |
 | Risk category (BSI-P-07) | `very-high` (considerable × very-frequently) |
-| Treatment option (BSI-P-08) | B — Risk reduction: `escapeHtml` at `server.js:106` is the safeguard |
+| Treatment option (BSI-P-08) | B — Risk reduction: `escapeHtml` at `lib/html.js:10` is the safeguard |
 | Residual risk | Only the username is echoed, so only it is covered. The app sets no Content-Security-Policy, so escaping is the sole defence — there is no second layer if it fails. |
 
 ## Test Script
@@ -102,6 +102,7 @@ test('TC-SEC-001 — a script tag in the username is escaped, not executed', asy
 ## Change Log
 | Version | Date | Author | Change | Reason |
 | --- | --- | --- | --- | --- |
+| 3 | 2026-09-14 | marc.riegel@nimbusforge.de | Repointed the safeguard location from `server.js:106` to `lib/html.js:10` | Issue #1 moved `escapeHtml` into a shared module so the browse pages could escape file content with the same function; a case naming the wrong file sends the next reader looking in the wrong place |
 | 2 | 2026-09-14 | marc.riegel@nimbusforge.de | Migrated to the ISTQB case format and automated | The `write-test-case` skill requires traceability, risk classification and an executable script |
 | 1 | 2026-09-14 | marc.riegel@nimbusforge.de | Created | The username is reflected into the page after a failed login |
 
@@ -111,4 +112,4 @@ case listed as a "repeat with" variation is now TC-SEC-003, per the one-case-one
 rule — the two payloads exercise different characters of `escapeHtml` and a partial
 implementation could pass one and fail the other.
 
-Verified to fail when the character class in `escapeHtml` at `server.js:106` is emptied.
+Verified to fail when the character class in `escapeHtml` at `lib/html.js:10` is emptied.

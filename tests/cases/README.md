@@ -37,6 +37,11 @@ area, and never reused.
 | [TC-SEC-002](TC-SEC-002-error-message-does-not-enumerate-users.md) | A wrong password and an unknown user are indistinguishable | security | medium | security | automated |
 | [TC-SEC-003](TC-SEC-003-attribute-context-escaped.md) | A quote in the username cannot break out of the value attribute | security | critical | security | automated |
 | [TC-SEC-004](TC-SEC-004-password-never-echoed.md) | A submitted password is never echoed back in a response | security | high | security | automated |
+| [TC-SEC-005](TC-SEC-005-unknown-identifier-returns-404.md) | An unknown identifier returns 404 without leaking internals | security | medium | security | automated |
+| [TC-SEC-006](TC-SEC-006-traversal-identifier-refused.md) | A traversal identifier cannot read outside the test directories | security | critical | security | automated |
+| [TC-SEC-007](TC-SEC-007-case-script-payload-escaped.md) | A script payload stored in a case file is displayed as text | security | high | security | automated |
+| [TC-SEC-008](TC-SEC-008-case-attribute-payload-escaped.md) | An attribute-breakout payload in a case file is displayed as text | security | high | security | automated |
+| [TC-SEC-009](TC-SEC-009-browsing-never-writes.md) | Browsing the pages never writes to the test directories | security | medium | security | automated |
 | [TC-SESS-001](TC-SESS-001-success-page-requires-session.md) | The success page is unreachable without a session | security | critical | security | automated |
 | [TC-SESS-002](TC-SESS-002-logged-in-user-redirected-from-login.md) | A logged-in user is redirected away from the login page | functional | medium | regression | automated |
 | [TC-SESS-003](TC-SESS-003-logout-ends-session.md) | Logout clears the cookie and returns to the login page | functional | high | regression | automated |
@@ -47,13 +52,23 @@ area, and never reused.
 | [TC-SESS-008](TC-SESS-008-distinct-session-per-login.md) | Every login is issued a distinct session identifier | security | high | security | automated |
 | [TC-SESS-009](TC-SESS-009-logout-does-not-affect-other-sessions.md) | Logging out of one session leaves other sessions untouched | security | high | security | automated |
 | [TC-SESS-010](TC-SESS-010-logout-without-session.md) | Logging out without a session is handled gracefully | reliability | low | regression | automated |
+| [TC-SESS-011](TC-SESS-011-browse-pages-require-session.md) | The case and run browsers are unreachable without a session | security | high | security | automated |
 | [TC-UI-001](TC-UI-001-login-page-renders.md) | The login page renders with all form controls | functional | high | smoke | automated |
 | [TC-UI-002](TC-UI-002-password-field-masked.md) | The password field is a masked input | usability | medium | regression | semi-automated |
 | [TC-UI-003](TC-UI-003-stylesheet-served.md) | The static stylesheet is served | functional | low | regression | automated |
 | [TC-UI-004](TC-UI-004-demo-credentials-hint.md) | The login page shows the demo credentials hint | functional | low | regression | automated |
 | [TC-UI-005](TC-UI-005-unknown-path-returns-404.md) | An unknown path returns 404 without leaking internals | security | medium | security | automated |
+| [TC-UI-006](TC-UI-006-success-page-links-to-browsers.md) | The success page links to the case and run browsers | functional | medium | regression | automated |
+| [TC-UI-007](TC-UI-007-case-list-shows-classification.md) | The case list shows every case with its classification | functional | high | regression | automated |
+| [TC-UI-008](TC-UI-008-case-detail-shows-specification.md) | The case detail page shows the whole specification | functional | high | regression | automated |
+| [TC-UI-009](TC-UI-009-run-list-newest-first.md) | The run list shows every recorded run, newest first | functional | high | regression | automated |
+| [TC-UI-010](TC-UI-010-run-detail-shows-report.md) | The run detail page shows the whole report | functional | high | regression | automated |
+| [TC-UI-011](TC-UI-011-run-links-to-its-cases.md) | A run report links to each case it executed | functional | medium | regression | automated |
+| [TC-UI-012](TC-UI-012-case-links-to-recent-results.md) | A case links back to its most recent recorded results | functional | medium | regression | automated |
+| [TC-UI-013](TC-UI-013-empty-run-directory.md) | An empty run directory renders an empty state, not an error | reliability | medium | regression | automated |
+| [TC-UI-014](TC-UI-014-unreadable-case-is-flagged.md) | An unreadable case file is flagged, not dropped | reliability | medium | regression | automated |
 
-36 cases, all automated (TC-UI-002 is `semi-automated`: its final visual step is manual).
+51 cases, all automated (TC-UI-002 is `semi-automated`: its final visual step is manual).
 
 ## Format
 
@@ -86,13 +101,15 @@ server start-up and request helpers.
 
 ## Test basis
 
-No ticket exists for this application yet, so no case references an acceptance criterion.
-Security behaviour traces to BSI practices; the rest is `derived` from the implementation.
-When tickets arrive, replace the `derived` references with the ACs — the `demand` field in
-each reference records what the case currently assumes is required.
+The cases covering [issue #1](https://github.com/mrcrgl/course-ai-test-automation-202609/issues/1)
+trace to its acceptance criteria. The login application itself predates any ticket, so its
+security behaviour traces to BSI practices and the rest is `derived` from the
+implementation. When tickets arrive for those, replace the `derived` references with the
+ACs — the `demand` field in each reference records what the case currently assumes is
+required.
 
-| Reference type | Cases |
+| Reference type | References |
 | --- | --- |
-| `bsi-practice` | 30 |
+| `bsi-practice` | 31 |
 | `derived` | 6 |
-| `acceptance-criterion` | 0 |
+| `acceptance-criterion` | 15 |

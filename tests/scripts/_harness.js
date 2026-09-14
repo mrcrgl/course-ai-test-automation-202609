@@ -48,6 +48,11 @@ async function login(base, username, password) {
   return cookie ? cookie.split(';')[0] : null;
 }
 
+/** GET with an optional session cookie; redirects are never followed. */
+function get(url, cookie) {
+  return fetch(url, { headers: cookie ? { cookie } : {}, redirect: 'manual' });
+}
+
 /** Text of the element carrying `data-testid="<id>"`, or null. */
 function testid(html, id) {
   const m = html.match(new RegExp(`data-testid="${id}"[^>]*>([^<]*)<`));
@@ -62,4 +67,4 @@ function inputValue(html, id) {
   return v ? v[1] : null;
 }
 
-module.exports = { useServer, form, json, login, testid, inputValue };
+module.exports = { useServer, form, json, login, get, testid, inputValue };
