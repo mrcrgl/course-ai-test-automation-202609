@@ -82,9 +82,33 @@ working tree. See [the `run-test-cases` skill](.claude/skills/run-test-cases/SKI
 
 Scripts use the built-in `node:test` runner and `fetch` — no test dependencies.
 
+## Continuous integration
+
+[`.github/workflows/tests.yml`](.github/workflows/tests.yml) runs the same three commands on
+GitHub Actions. Nothing about running the suite locally changes — the workflow only calls
+what is already there.
+
+| Question | Answer |
+| --- | --- |
+| **When does it run?** | Every pull request against `master` — opened, updated with a new commit, or reopened — and every push to `master`. A new commit cancels the run still in progress for the same pull request. |
+| **What does it run?** | `npm ci`, then `npm run test:report`, then `validate-cases.sh --strict`. A non-zero exit from any of them fails the check. |
+| **Where does it report?** | Two checks per pull request, `Suite (Node 20)` and `Suite (Node 24)`, reporting independently. |
+| **How long does it take?** | Under a minute; the suite itself takes about two seconds. |
+
+**Reading the result.** The verdict, the case counts and — on a failure — the assertion
+diagnostics are written to the job summary, the page the check links to. The full run report
+is attached to the run as the artifact `run-report-node-20` / `run-report-node-24`: open the
+run, then *Artifacts* at the bottom of the summary page. It is the same markdown file
+`npm run test:report` writes locally.
+
+CI never commits anything. A report under `tests/runs/` in the repository is one somebody
+recorded and committed deliberately; the ones CI produces live and die with the run that
+made them.
+
 ## Layout
 
 ```
+.github/workflows/ the CI check
 server.js          app + routes
 lib/content.js     reads the case and run files off disk
 lib/markdown.js    escape-first markdown renderer

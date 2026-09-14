@@ -18,6 +18,10 @@ tests/cases/TC-<AREA>-<NNN>-<kebab-case-slug>.md
 The companion script lives at `tests/scripts/TC-<AREA>-<NNN>.test.js` — one script file per
 case, named for the case, no slug.
 
+Areas name parts of the running application. There is deliberately no area for the build, the
+CI workflow or the repository's own tooling — those are not test cases; see "What a case is
+allowed to cover" in `SKILL.md`.
+
 ## ISTQB / ISO-IEC-IEEE 29119-3 conformance
 
 ISTQB defines a test case by the attributes standardised in ISO/IEC/IEEE 29119-3 (Test
