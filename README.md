@@ -9,6 +9,8 @@ npm install
 npm start        # http://localhost:3000  (override with PORT=4000)
 ```
 
+Requires Node 20 or newer.
+
 ## Credentials
 
 | Username | Password   |
@@ -31,8 +33,21 @@ npm start        # http://localhost:3000  (override with PORT=4000)
 Elements carry `data-testid` attributes: `login-form`, `username-input`, `password-input`,
 `login-button`, `error-message`, `success-heading`, `username`, `logout-button`.
 
-`server.js` exports the Express app, so it can be driven directly by Supertest without
-binding a port.
+`server.js` exports the Express app, so a test can bind it to an ephemeral port instead of
+occupying 3000.
+
+## Tests
+
+```bash
+npm test                                                       # run the case scripts
+bash .claude/skills/write-test-case/scripts/validate-cases.sh  # check the case files
+```
+
+36 test cases live in `tests/cases/`, one markdown file each, with the script that executes
+it in `tests/scripts/`. See [tests/cases/README.md](tests/cases/README.md) for the index and
+[the `write-test-case` skill](.claude/skills/write-test-case/SKILL.md) for the format.
+
+Scripts use the built-in `node:test` runner and `fetch` — no test dependencies.
 
 ## Layout
 
@@ -40,4 +55,6 @@ binding a port.
 server.js          app + routes
 views/login.html   login form
 public/style.css   styles
+tests/cases/       test cases, one markdown file each
+tests/scripts/     the script for each case, plus the shared harness
 ```

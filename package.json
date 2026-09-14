@@ -4,7 +4,8 @@
   "description": "Simple login demo app used as a target for testing exercises",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "test": "node --test tests/scripts/*.test.js"
   },
   "keywords": [],
   "author": "",
@@ -13,5 +14,8 @@
   "dependencies": {
     "cookie-parser": "^1.4.7",
     "express": "^5.2.1"
+  },
+  "engines": {
+    "node": ">=20"
   }
 }
