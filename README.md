@@ -40,12 +40,17 @@ occupying 3000.
 
 ```bash
 npm test                                                       # run the case scripts
+npm run test:report                                            # run them and record a report
 bash .claude/skills/write-test-case/scripts/validate-cases.sh  # check the case files
 ```
 
 36 test cases live in `tests/cases/`, one markdown file each, with the script that executes
 it in `tests/scripts/`. See [tests/cases/README.md](tests/cases/README.md) for the index and
 [the `write-test-case` skill](.claude/skills/write-test-case/SKILL.md) for the format.
+
+`npm run test:report` additionally writes a dated record of the run to `tests/runs/` —
+per-case results, latency, and the commit it ran against. It refuses to run against a dirty
+working tree. See [the `run-test-cases` skill](.claude/skills/run-test-cases/SKILL.md).
 
 Scripts use the built-in `node:test` runner and `fetch` — no test dependencies.
 
@@ -57,4 +62,5 @@ views/login.html   login form
 public/style.css   styles
 tests/cases/       test cases, one markdown file each
 tests/scripts/     the script for each case, plus the shared harness
+tests/runs/        one report per suite execution
 ```

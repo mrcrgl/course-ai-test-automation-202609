@@ -74,8 +74,12 @@ and embeds the script that executes it.
 
 ```bash
 npm test                                                       # execute the case scripts
+npm run test:report                                            # execute and record a report
 bash .claude/skills/write-test-case/scripts/validate-cases.sh  # check the case files
 ```
+
+`npm run test:report` writes a dated record of the run to [`../runs/`](../runs/), including
+per-case latency and the commit it ran against.
 
 Scripts live in `tests/scripts/`, one per case, sharing `tests/scripts/_harness.js` for
 server start-up and request helpers.

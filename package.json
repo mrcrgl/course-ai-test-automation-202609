@@ -5,7 +5,8 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "test": "node --test tests/scripts/*.test.js"
+    "test": "node --test tests/scripts/*.test.js",
+    "test:report": "node .claude/skills/run-test-cases/scripts/run-tests.js"
   },
   "keywords": [],
   "author": "",
