@@ -72,7 +72,7 @@ npm run test:report                                            # run them and re
 bash .claude/skills/write-test-case/scripts/validate-cases.sh  # check the case files
 ```
 
-60 test cases live in `tests/cases/`, one markdown file each, with the script that executes
+51 test cases live in `tests/cases/`, one markdown file each, with the script that executes
 it in `tests/scripts/`. See [tests/cases/README.md](tests/cases/README.md) for the index and
 [the `write-test-case` skill](.claude/skills/write-test-case/SKILL.md) for the format.
 
@@ -104,9 +104,6 @@ run, then *Artifacts* at the bottom of the summary page. It is the same markdown
 CI never commits anything. A report under `tests/runs/` in the repository is one somebody
 recorded and committed deliberately; the ones CI produces live and die with the run that
 made them.
-
-The workflow is covered by its own test cases, `TC-CI-001` to `TC-CI-009`, which read
-`.github/workflows/tests.yml` and execute the parts of it that are executable.
 
 ## Layout
 

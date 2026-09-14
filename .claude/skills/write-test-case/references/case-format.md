@@ -11,12 +11,16 @@ tests/cases/TC-<AREA>-<NNN>-<kebab-case-slug>.md
 
 | Part | Rule |
 | --- | --- |
-| `AREA` | `UI`, `AUTH`, `SESS`, `API`, `SEC`, `CI`. Add a new area only when no existing one fits. |
+| `AREA` | `UI`, `AUTH`, `SESS`, `API`, `SEC`. Add a new area only when no existing one fits. |
 | `NNN` | Zero-padded, unique within the area, **never reused** — a deleted case's number stays dead. |
 | slug | Kebab-case, derived from the title, ≤ 6 words. |
 
 The companion script lives at `tests/scripts/TC-<AREA>-<NNN>.test.js` — one script file per
 case, named for the case, no slug.
+
+Areas name parts of the running application. There is deliberately no area for the build, the
+CI workflow or the repository's own tooling — those are not test cases; see "What a case is
+allowed to cover" in `SKILL.md`.
 
 ## ISTQB / ISO-IEC-IEEE 29119-3 conformance
 

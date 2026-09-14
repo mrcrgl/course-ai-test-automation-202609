@@ -1,6 +1,6 @@
 ---
 name: write-test-case
-description: Write, update, review or migrate a test case in tests/cases/. Use when asked to add or change a test case, turn a ticket's acceptance criteria into cases, cover a security requirement, or check that existing cases conform to the repo's format. Produces an ISTQB / ISO-IEC-IEEE 29119-3 compliant case file with traceable references (ticket AC, or a practice derived from BSI-Standard 200-3 IT-Grundschutz), full recurrence metadata, a change log, and the runnable script that tests the case.
+description: Write, update, review or migrate a test case in tests/cases/. Use when asked to add or change a test case, turn a ticket's acceptance criteria into cases, cover a security requirement, or check that existing cases conform to the repo's format. Cases cover the running application only — never the CI workflow, build scripts or the repository's own tooling. Produces an ISTQB / ISO-IEC-IEEE 29119-3 compliant case file with traceable references (ticket AC, or a practice derived from BSI-Standard 200-3 IT-Grundschutz), full recurrence metadata, a change log, and the runnable script that tests the case.
 ---
 
 # Writing a test case
@@ -9,20 +9,46 @@ A test case in this repo is one markdown file that is simultaneously a specifica
 traceability record, and the home of the script that executes it. If any of those three is
 missing, the case is not done.
 
+## What a case is allowed to cover
+
+**The application's behaviour, and nothing else.** A test case describes something the
+running system does for a user or an API client — a response, a page, a session, a refusal.
+
+Out of scope, no matter how testable it looks:
+
+| Not a test case | Where it belongs instead |
+| --- | --- |
+| The CI workflow — triggers, matrix, permissions, artifacts | Code review of `.github/workflows/`, and the workflow's own runs |
+| Build, packaging or release scripts | The same: review, plus the fact that they run |
+| The repository's own tooling — the runner, this validator, the case format | Review; a change that breaks them is visible immediately |
+| Editor, linter or dependency configuration | Review |
+
+The temptation is real when a ticket's acceptance criteria are *about* the pipeline, and the
+criteria are readable straight out of a YAML file. Resist it. A case asserting that a
+workflow file declares `node-version: [20, 24]` proves that a file says what it says; it
+tells you nothing about whether the application works, it goes red when the pipeline is
+improved rather than when the product breaks, and it puts the suite in the business of
+guarding its own scaffolding. Pipeline criteria are evidenced by the pipeline running — link
+the run.
+
+If a ticket about infrastructure has no acceptance criterion describing application
+behaviour, it gets no test case. Say so in the pull request rather than inventing one.
+
 ## Non-negotiables
 
-1. **Every case traces to something.** A ticket acceptance criterion, or a BSI practice.
+1. **The case is about the application.** See the section above.
+2. **Every case traces to something.** A ticket acceptance criterion, or a BSI practice.
    Never "because it seemed sensible". A case with no `references` entry fails validation.
-2. **Prefer the ticket AC.** BSI practices are the fallback for security behaviour no ticket
+3. **Prefer the ticket AC.** BSI practices are the fallback for security behaviour no ticket
    describes — not a decoration to add alongside an AC that already covers the behaviour.
-3. **Every case carries its script.** Inline in `## Test Script` and on disk at
+4. **Every case carries its script.** Inline in `## Test Script` and on disk at
    `tests/scripts/<ID>.test.js`. The two must be identical.
-4. **Every case carries its change log.** Append-only, newest first, row count equals
+5. **Every case carries its change log.** Append-only, newest first, row count equals
    `version`.
-5. **Verify before you write the expected result.** Run the behaviour against the actual
+6. **Verify before you write the expected result.** Run the behaviour against the actual
    application and assert what it *does*. A case full of plausible-looking expectations that
    nobody ever executed is worse than no case, because it looks like coverage.
-6. **One case, one behaviour.** If the title needs an "and", it is two cases.
+7. **One case, one behaviour.** If the title needs an "and", it is two cases.
 
 ## Workflow
 
@@ -38,6 +64,9 @@ Find what the case traces to, before writing anything:
   transparency, circumvention).
 - **Neither** — `type: derived`, with `source` naming the file and line the behaviour was
   read from. Use sparingly; a repo full of `derived` cases has no test basis at all.
+
+If the ticket's criteria are all about the build or the pipeline rather than the application,
+stop here — there is nothing for this skill to write.
 
 ### 2. Derive the case set
 Do not stop at the happy path. For each behaviour, BSI-P-11 and BSI-P-13 generate the
