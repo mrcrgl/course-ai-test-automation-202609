@@ -1,6 +1,9 @@
 const path = require('path');
 const express = require('express');
 const cookieParser = require('cookie-parser');
+const { escapeHtml } = require('./lib/html');
+const content = require('./lib/content');
+const pages = require('./lib/pages');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -20,6 +23,15 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 function currentUser(req) {
   return sessions.get(req.cookies[SESSION_COOKIE]);
+}
+
+// The same guard that protects /success protects the browse pages: no session,
+// no content, and the redirect body carries nothing of what was asked for.
+function requireSession(req, res, next) {
+  const user = currentUser(req);
+  if (!user) return res.redirect('/');
+  res.locals.user = user;
+  next();
 }
 
 app.get('/', (req, res) => {
@@ -51,6 +63,33 @@ app.get('/success', (req, res) => {
   const user = currentUser(req);
   if (!user) return res.redirect('/');
   res.status(200).send(successPage(user));
+});
+
+// --- browsing the test cases and runs on disk (read-only) ----------------
+
+app.get('/cases', requireSession, (req, res) => {
+  res.status(200).send(pages.casesPage(content.listCases(), res.locals.user));
+});
+
+app.get('/cases/:id', requireSession, (req, res) => {
+  const testCase = content.loadCase(req.params.id);
+  if (!testCase) {
+    return res.status(404).send(pages.notFoundPage('No test case has that identifier.', res.locals.user));
+  }
+  const results = content.recentResultsFor(testCase.id);
+  res.status(200).send(pages.casePage(testCase, results, res.locals.user));
+});
+
+app.get('/runs', requireSession, (req, res) => {
+  res.status(200).send(pages.runsPage(content.listRuns(), res.locals.user));
+});
+
+app.get('/runs/:id', requireSession, (req, res) => {
+  const run = content.loadRun(req.params.id);
+  if (!run) {
+    return res.status(404).send(pages.notFoundPage('No run has been recorded under that identifier.', res.locals.user));
+  }
+  res.status(200).send(pages.runPage(run, res.locals.user));
 });
 
 app.post('/logout', (req, res) => {
@@ -95,22 +134,16 @@ function successPage(user) {
   <main class="card">
     <h1 data-testid="success-heading">Login successful</h1>
     <p>Welcome back, <strong data-testid="username">${escapeHtml(user)}</strong>.</p>
+    <nav class="links">
+      <a href="/cases" data-testid="cases-link">Browse test cases</a>
+      <a href="/runs" data-testid="runs-link">Browse test runs</a>
+    </nav>
     <form method="post" action="/logout">
       <button type="submit" data-testid="logout-button">Log out</button>
     </form>
   </main>
 </body>
 </html>`;
-}
-
-function escapeHtml(value) {
-  return String(value).replace(/[&<>"']/g, (c) => ({
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-    '"': '&quot;',
-    "'": '&#39;',
-  })[c]);
 }
 
 if (require.main === module) {
