@@ -16,3 +16,8 @@ links back to each case in `../cases/`.
 **Reports belong in version control.** They are the evidence that a given commit passed. The
 runner refuses to run against a dirty working tree precisely so that the commit named in a
 report describes exactly what was executed.
+
+The reports in this directory are the ones somebody recorded and committed deliberately. CI
+runs the same command on every pull request, but attaches its report to the run as an
+artifact instead of committing it — see "Continuous integration" in the top-level
+[README](../../README.md).

@@ -9,8 +9,8 @@ specification, a traceability record, and the home of the script that executes i
 TC-<AREA>-<NNN>-<kebab-case-slug>.md
 ```
 
-`AREA` is one of `UI`, `AUTH`, `SESS`, `API`, `SEC`. `NNN` is zero-padded, unique within its
-area, and never reused.
+`AREA` is one of `UI`, `AUTH`, `SESS`, `API`, `SEC`, `CI`. `NNN` is zero-padded, unique within
+its area, and never reused.
 
 ## Index
 
@@ -33,6 +33,15 @@ area, and never reused.
 | [TC-AUTH-009](TC-AUTH-009-password-whitespace-significant.md) | Surrounding whitespace in the password is significant | security | high | security | automated |
 | [TC-AUTH-010](TC-AUTH-010-username-case-sensitive.md) | Username matching is case-sensitive | security | medium | regression | automated |
 | [TC-AUTH-011](TC-AUTH-011-username-preserved-after-failure.md) | The username survives a failed attempt but the password does not | usability | medium | regression | automated |
+| [TC-CI-001](TC-CI-001-workflow-triggers-on-pull-requests.md) | The check starts on every pull request against master | functional | high | regression | automated |
+| [TC-CI-002](TC-CI-002-workflow-runs-the-defined-suite.md) | The check runs the suite the way the repository defines it | functional | critical | regression | automated |
+| [TC-CI-003](TC-CI-003-suite-runs-on-node-20-and-24.md) | The check runs on the Node versions the project supports | portability | medium | regression | automated |
+| [TC-CI-004](TC-CI-004-malformed-case-fails-validator.md) | A malformed case file turns the check red | functional | high | regression | automated |
+| [TC-CI-005](TC-CI-005-run-report-uploaded-as-artifact.md) | The run report is attached to the run as a downloadable artifact | functional | medium | regression | automated |
+| [TC-CI-006](TC-CI-006-verdict-in-job-summary.md) | The verdict and the case counts appear in the job summary | functional | medium | regression | automated |
+| [TC-CI-007](TC-CI-007-workflow-writes-nothing-back.md) | The workflow may only read the repository and writes nothing back | security | medium | security | automated |
+| [TC-CI-008](TC-CI-008-superseded-runs-are-cancelled.md) | A run superseded by a newer commit is cancelled | functional | low | regression | automated |
+| [TC-CI-009](TC-CI-009-check-adds-no-dependency.md) | The check adds nothing to the application | maintainability | medium | regression | automated |
 | [TC-SEC-001](TC-SEC-001-username-is-html-escaped.md) | A script tag in the username is escaped, not executed | security | critical | security | automated |
 | [TC-SEC-002](TC-SEC-002-error-message-does-not-enumerate-users.md) | A wrong password and an unknown user are indistinguishable | security | medium | security | automated |
 | [TC-SEC-003](TC-SEC-003-attribute-context-escaped.md) | A quote in the username cannot break out of the value attribute | security | critical | security | automated |
@@ -68,7 +77,7 @@ area, and never reused.
 | [TC-UI-013](TC-UI-013-empty-run-directory.md) | An empty run directory renders an empty state, not an error | reliability | medium | regression | automated |
 | [TC-UI-014](TC-UI-014-unreadable-case-is-flagged.md) | An unreadable case file is flagged, not dropped | reliability | medium | regression | automated |
 
-51 cases, all automated (TC-UI-002 is `semi-automated`: its final visual step is manual).
+60 cases, all automated (TC-UI-002 is `semi-automated`: its final visual step is manual).
 
 ## Format
 
@@ -97,12 +106,14 @@ bash .claude/skills/write-test-case/scripts/validate-cases.sh  # check the case 
 per-case latency and the commit it ran against.
 
 Scripts live in `tests/scripts/`, one per case, sharing `tests/scripts/_harness.js` for
-server start-up and request helpers.
+server start-up and request helpers, and `tests/scripts/_workflow.js` for reading the CI
+workflow file.
 
 ## Test basis
 
 The cases covering [issue #1](https://github.com/mrcrgl/course-ai-test-automation-202609/issues/1)
-trace to its acceptance criteria. The login application itself predates any ticket, so its
+and [issue #3](https://github.com/mrcrgl/course-ai-test-automation-202609/issues/3) trace to
+their acceptance criteria. The login application itself predates any ticket, so its
 security behaviour traces to BSI practices and the rest is `derived` from the
 implementation. When tickets arrive for those, replace the `derived` references with the
 ACs — the `demand` field in each reference records what the case currently assumes is
@@ -112,4 +123,4 @@ required.
 | --- | --- |
 | `bsi-practice` | 31 |
 | `derived` | 6 |
-| `acceptance-criterion` | 15 |
+| `acceptance-criterion` | 24 |

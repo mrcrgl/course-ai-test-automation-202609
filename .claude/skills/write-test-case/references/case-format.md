@@ -11,7 +11,7 @@ tests/cases/TC-<AREA>-<NNN>-<kebab-case-slug>.md
 
 | Part | Rule |
 | --- | --- |
-| `AREA` | `UI`, `AUTH`, `SESS`, `API`, `SEC`. Add a new area only when no existing one fits. |
+| `AREA` | `UI`, `AUTH`, `SESS`, `API`, `SEC`, `CI`. Add a new area only when no existing one fits. |
 | `NNN` | Zero-padded, unique within the area, **never reused** — a deleted case's number stays dead. |
 | slug | Kebab-case, derived from the title, ≤ 6 words. |
 

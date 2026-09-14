@@ -1,0 +1,155 @@
+# Runs this repository's own test suite automatically, so that a pull request carries an
+# independent claim that it is green instead of a report somebody remembered to produce.
+#
+# It runs nothing bespoke: the same three commands a developer runs locally (README.md,
+# "Tests") — `npm ci`, `npm run test:report`, and the case-format validator.
+#
+# For a reader who does not write GitHub Actions workflows daily:
+#
+#   on:          when a run starts
+#   permissions: what the run's token is allowed to do — here, read the code and nothing else
+#   concurrency: what happens when a newer run supersedes one that is still in progress
+#   jobs:        the actual work; the `strategy.matrix` repeats the whole job once per Node version
+#   steps:       run top to bottom on a fresh virtual machine; a non-zero exit fails the job
+#
+# The workflow never commits and never pushes. The report the suite writes under `tests/runs/`
+# stays on the runner and leaves only as a downloadable artifact — committing a report stays a
+# deliberate local act.
+
+name: Tests
+
+# AC-1: every pull request whose base branch is master, when opened, updated with a new
+# commit (`synchronize`) or reopened — plus every push to master itself.
+on:
+  pull_request:
+    branches: [master]
+    types: [opened, synchronize, reopened]
+  push:
+    branches: [master]
+
+# Least privilege. Reading the code is all this workflow needs, and it is all a pull request
+# from a fork would be granted anyway.
+permissions:
+  contents: read
+
+# AC-7: one run at a time per pull request (or per branch, for a push). Pushing a new commit
+# cancels the run that is still working on the previous one, so only the newest result is
+# reported and the older run stops burning a runner on a commit nobody is looking at.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    # The default shell for `run:` stops on the first failing command but does not notice a
+    # failure on the left-hand side of a pipe. `shell: bash` adds `-o pipefail`, which the
+    # suite step below relies on: `npm run test:report | tee ...` must fail when the suite does.
+    shell: bash
+
+jobs:
+  suite:
+    # AC-3: the matrix runs this job once per Node version, and each appears as its own check
+    # on the pull request — "Suite (Node 20)" and "Suite (Node 24)" — so a failure names the
+    # version it happened on. package.json declares `"node": ">=20"`: 20 is the floor, 24 is
+    # the current release the suite is developed against.
+    name: Suite (Node ${{ matrix.node-version }})
+    runs-on: ubuntu-latest
+    # The suite itself takes about two seconds; the rest is checkout and install. Ten minutes
+    # is a generous ceiling that still stops a hung job from occupying a runner.
+    timeout-minutes: 10
+    strategy:
+      # Let the other Node version finish rather than cancelling it, so one run tells you
+      # whether the failure is version-specific.
+      fail-fast: false
+      matrix:
+        node-version: ['20', '24']
+
+    steps:
+      - name: Check out the commit under test
+        uses: actions/checkout@v4
+        with:
+          # For a pull request, Actions offers a merge commit by default. Check out the head
+          # commit instead: the run report records the commit the results belong to, and that
+          # has to be a commit that actually exists in the pull request.
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Give the checkout a branch name
+        # Checking out a commit by hash leaves a detached HEAD, and the report reads its
+        # "Branch" field from `git rev-parse --abbrev-ref HEAD` — which would then say "HEAD".
+        # Pointing a local branch at that same commit makes the artifact say what was tested.
+        # It changes no tracked file, so the runner's dirty-tree guard stays satisfied.
+        run: git switch -C "$BRANCH"
+        env:
+          BRANCH: ${{ github.head_ref || github.ref_name }}
+
+      - name: Install Node ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          # Caches the npm download cache (~/.npm), not node_modules — nothing is written
+          # into the working tree, which the dirty-tree guard below would otherwise trip over.
+          cache: npm
+
+      # AC-2: `npm ci` installs exactly what the committed package-lock.json pins, and fails
+      # if the lockfile and package.json disagree. node_modules is gitignored, so installing
+      # leaves the working tree clean.
+      - name: Install dependencies
+        run: npm ci
+
+      # AC-2, AC-4: executes every automated case and records a report under tests/runs/.
+      # Exit codes: 0 all passed, 1 a case failed or produced no result, 2 not a git
+      # repository, 3 the working tree was dirty, 4 no executable cases. Anything but 0 fails
+      # this step and therefore the job, and the log names the failing case and its assertion.
+      # The output is teed so the summary step can find the report that was written.
+      - name: Run the test cases and record a report
+        id: suite
+        run: npm run test:report | tee "$RUNNER_TEMP/suite.log"
+
+      # AC-5: checks every case file against the format the write-test-case skill defines —
+      # front-matter keys, section order, change-log rows against `version`, and the inline
+      # `## Test Script` against the file on disk. `--strict` also rejects unmigrated files.
+      # It runs even when the suite failed (but not when the run was cancelled), so a red
+      # suite cannot hide a malformed case file, or the other way round.
+      - name: Validate the case files
+        if: ${{ !cancelled() }}
+        run: bash .claude/skills/write-test-case/scripts/validate-cases.sh --strict
+
+      # AC-6: the verdict and the case counts go into the job summary — the page you land on
+      # when you click the check — so the result is readable without downloading anything.
+      - name: Publish the verdict in the job summary
+        id: report
+        if: ${{ !cancelled() }}
+        run: |
+          # The runner prints the path of the report it wrote on its last line.
+          report=$(grep -oE 'tests/runs/[^ ]+\.md' "$RUNNER_TEMP/suite.log" | tail -1 || true)
+          if [ -z "$report" ] || [ ! -f "$report" ]; then
+            echo "No run report was written — see the \"Run the test cases\" step for why." \
+              >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          echo "path=$report" >> "$GITHUB_OUTPUT"
+          {
+            echo "## Node ${{ matrix.node-version }}"
+            echo
+            # The verdict is the report's first bold line: PASS/FAIL and the case counts.
+            grep -m1 '^\*\*' "$report"
+            echo
+            # The Summary section: counts, latency, fastest and slowest case.
+            awk '/^## Summary$/{s=1} /^## Results$/{s=0} s' "$report"
+            # On a failure, the assertion diagnostics too, so the cause is on the same page.
+            if ! grep -q '^\*\*PASS\*\*' "$report"; then
+              awk '/^## Failures$/{s=1} /^## Manual follow-up$/{s=0} s' "$report"
+            fi
+            echo "_The full report is attached to this run as the \`run-report-node-${{ matrix.node-version }}\` artifact._"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # AC-6: the report is attached to the run, whether the suite passed or failed, and is
+      # never committed back to the repository.
+      - name: Attach the run report to this run
+        if: ${{ !cancelled() && steps.report.outputs.path != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: run-report-node-${{ matrix.node-version }}
+          path: ${{ steps.report.outputs.path }}
+          if-no-files-found: error
+          retention-days: 30
