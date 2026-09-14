@@ -66,7 +66,7 @@ jobs:
 
     steps:
       - name: Check out the commit under test
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           # For a pull request, Actions offers a merge commit by default. Check out the head
           # commit instead: the run report records the commit the results belong to, and that
@@ -83,7 +83,7 @@ jobs:
           BRANCH: ${{ github.head_ref || github.ref_name }}
 
       - name: Install Node ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: ${{ matrix.node-version }}
           # Caches the npm download cache (~/.npm), not node_modules — nothing is written
@@ -147,7 +147,7 @@ jobs:
       # never committed back to the repository.
       - name: Attach the run report to this run
         if: ${{ !cancelled() && steps.report.outputs.path != '' }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: run-report-node-${{ matrix.node-version }}
           path: ${{ steps.report.outputs.path }}
